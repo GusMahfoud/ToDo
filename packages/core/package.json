@@ -1,0 +1,19 @@
+{
+  "name": "@todomcp/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared schema, migrations, queries and tool defaults for TodoMCP",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "todomcp",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Desktop todo app that doubles as a local MCP server",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "bun test packages/core packages/mcp",
+    "typecheck": "bun run --filter '*' typecheck",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "build:sidecar": "bun run scripts/build-sidecar.ts",
+    "mcp": "bun run packages/mcp/src/index.ts",
+    "mcp:inspect": "bunx @modelcontextprotocol/inspector bun run packages/mcp/src/index.ts",
+    "mcp:connect": "bun run packages/mcp/src/index.ts connect",
+    "app:dev": "bun run --cwd packages/app tauri dev",
+    "app:build": "bun run build:sidecar && bun run --cwd packages/app tauri build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@types/bun": "^1.4.2",
+    "typescript": "~5.9.3"
+  }
+}

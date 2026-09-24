@@ -1,0 +1,77 @@
+name: Build installers (manual)
+
+# On-demand installers as workflow artifacts — no tag, no release. Useful when the
+# Rust side can't be compiled locally (e.g. Windows Smart App Control).
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which platform(s) to build
+        type: choice
+        default: all
+        options: [all, windows, macos, linux]
+      debug:
+        description: Debug build (faster, unoptimised)
+        type: boolean
+        default: false
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.pick.outputs.include }}
+    steps:
+      - id: pick
+        shell: bash
+        run: |
+          all='[
+            {"name":"windows","os":"windows-latest","triple":"x86_64-pc-windows-msvc","args":""},
+            {"name":"macos","os":"macos-latest","triple":"aarch64-apple-darwin","args":"--target aarch64-apple-darwin"},
+            {"name":"linux","os":"ubuntu-22.04","triple":"x86_64-unknown-linux-gnu","args":""}
+          ]'
+          if [ "${{ inputs.target }}" = "all" ]; then echo "include=$(echo "$all" | jq -c .)" >> "$GITHUB_OUTPUT";
+          else echo "include=$(echo "$all" | jq -c --arg t "${{ inputs.target }}" '[.[] | select(.name==$t)]')" >> "$GITHUB_OUTPUT"; fi
+
+  build:
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.matrix.outputs.include) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.triple }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages/app/src-tauri
+      - name: Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev build-essential curl wget file libxdo-dev
+      - run: bun install --frozen-lockfile
+      - run: bun run scripts/build-sidecar.ts ${{ matrix.triple }}
+      - name: tauri build
+        working-directory: packages/app
+        run: bun tauri build ${{ matrix.args }} ${{ inputs.debug && '--debug' || '' }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: todomcp-${{ matrix.name }}-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            packages/app/src-tauri/target/**/release/bundle/**/*.exe
+            packages/app/src-tauri/target/**/release/bundle/**/*.msi
+            packages/app/src-tauri/target/**/release/bundle/**/*.dmg
+            packages/app/src-tauri/target/**/release/bundle/**/*.AppImage
+            packages/app/src-tauri/target/**/release/bundle/**/*.deb
+            packages/app/src-tauri/target/**/release/bundle/**/*.rpm
+            packages/app/src-tauri/target/**/debug/bundle/**/*.exe
+            packages/app/src-tauri/target/**/debug/bundle/**/*.msi
+            packages/app/src-tauri/target/**/debug/bundle/**/*.dmg
+            packages/app/src-tauri/target/**/debug/bundle/**/*.AppImage
+            packages/app/src-tauri/target/**/debug/bundle/**/*.deb
+            packages/app/src-tauri/target/**/debug/bundle/**/*.rpm

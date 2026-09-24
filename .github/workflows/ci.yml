@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ts:
+    name: TypeScript (test · typecheck · lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun test packages/core packages/mcp
+      - name: Compile sidecar for every target (cross-compile smoke)
+        run: bun run scripts/build-sidecar.ts --all
+      - name: Frontend build
+        run: bun run --cwd packages/app build
+
+  rust:
+    name: Rust (${{ matrix.os }})
+    needs: ts
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            triple: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            triple: x86_64-pc-windows-msvc
+          - os: macos-latest
+            triple: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: packages/app/src-tauri
+      - name: Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev build-essential curl wget file libxdo-dev
+      - run: bun install --frozen-lockfile
+      - name: Build sidecar for this host
+        run: bun run scripts/build-sidecar.ts ${{ matrix.triple }}
+      - name: Frontend build (tauri build expects ../dist)
+        run: bun run --cwd packages/app build
+      - name: cargo check + clippy
+        working-directory: packages/app/src-tauri
+        run: |
+          cargo check --locked || cargo check
+          cargo clippy -- -D warnings
+      - name: cargo fmt
+        working-directory: packages/app/src-tauri
+        run: cargo fmt --check

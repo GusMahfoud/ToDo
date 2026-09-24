@@ -1,0 +1,26 @@
+{
+  "name": "@todomcp/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "todo-mcp: local stdio MCP server over the TodoMCP SQLite database",
+  "bin": {
+    "todo-mcp": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "inspect": "bunx @modelcontextprotocol/inspector bun run src/index.ts",
+    "test": "bun test",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.1.0",
+    "@todomcp/core": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.1.0",
+    "@types/bun": "^1.4.2",
+    "typescript": "~5.9.3"
+  }
+}

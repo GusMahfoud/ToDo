@@ -1,0 +1,57 @@
+# Maintainer: TodoMCP contributors
+# AUR package for Arch / Omarchy. Builds from a release tarball; update pkgver + sha256sums per release.
+pkgname=todomcp
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Desktop todo app that doubles as a local MCP server for AI clients"
+arch=('x86_64' 'aarch64')
+url="https://github.com/example/todomcp"
+license=('MIT')
+depends=('webkit2gtk-4.1' 'libayatana-appindicator' 'gtk3' 'openssl')
+makedepends=('rust' 'cargo' 'bun' 'nodejs')
+options=('!lto')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  bun install --frozen-lockfile
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  local triple
+  triple="$(rustc --print host-tuple)"
+  bun run scripts/build-sidecar.ts "$triple"
+  bun run --cwd packages/app build
+  cd packages/app/src-tauri
+  cargo build --release --locked --frozen
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  local triple
+  triple="$(rustc --print host-tuple)"
+
+  # app binary + MCP sidecar side by side (the app resolves todo-mcp next to itself)
+  install -Dm755 "packages/app/src-tauri/target/release/todomcp" "$pkgdir/usr/bin/todomcp"
+  install -Dm755 "packages/app/src-tauri/binaries/todo-mcp-$triple" "$pkgdir/usr/bin/todo-mcp"
+
+  # desktop entry + icons
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/todomcp.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=TodoMCP
+Comment=Todo list with a built-in MCP server for AI clients
+Exec=todomcp
+Icon=todomcp
+Terminal=false
+Categories=Office;ProjectManagement;
+StartupWMClass=todomcp
+EOF
+  install -Dm644 "packages/app/src-tauri/icons/32x32.png"  "$pkgdir/usr/share/icons/hicolor/32x32/apps/todomcp.png"
+  install -Dm644 "packages/app/src-tauri/icons/128x128.png" "$pkgdir/usr/share/icons/hicolor/128x128/apps/todomcp.png"
+  install -Dm644 "packages/app/src-tauri/icons/128x128@2x.png" "$pkgdir/usr/share/icons/hicolor/256x256/apps/todomcp.png"
+
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

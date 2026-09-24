@@ -1,5 +1,5 @@
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { posix, win32 } from "node:path";
 
 /** Bundle identifier; must match `identifier` in tauri.conf.json. */
 export const APP_ID = "com.example.todomcp";
@@ -20,6 +20,8 @@ export function appDataDir(opts: PathEnv = {}): string {
   const platform = opts.platform ?? process.platform;
   const env = opts.env ?? process.env;
   const home = opts.home ?? homedir();
+  // Join with the *target* platform's separator so results are stable on any host.
+  const { join } = platform === "win32" ? win32 : posix;
   switch (platform) {
     case "win32":
       return join(env.APPDATA ?? join(home, "AppData", "Roaming"), APP_ID);
@@ -35,5 +37,6 @@ export function resolveDbPath(opts: PathEnv = {}): string {
   const env = opts.env ?? process.env;
   const override = env[DB_PATH_ENV]?.trim();
   if (override) return override;
+  const { join } = (opts.platform ?? process.platform) === "win32" ? win32 : posix;
   return join(appDataDir(opts), DB_FILE);
 }

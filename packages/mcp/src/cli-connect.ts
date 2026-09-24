@@ -4,7 +4,7 @@
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const CLIENTS = ["cursor", "claude-desktop", "claude-code", "json"] as const;
@@ -27,10 +27,13 @@ export function selfCommand(
   execPath = process.execPath,
   main = Bun.main,
 ): Pick<ServerEntry, "command" | "args"> {
-  const runningFromSource = /^bun(\.exe)?$/i.test(basename(execPath));
-  if (!runningFromSource) return { command: execPath, args: [] };
+  // Split on either separator so Windows paths behave the same when tested on Linux.
+  const exe = execPath.split(/[\\/]/).pop() ?? "";
+  if (!/^bun(\.exe)?$/i.test(exe)) return { command: execPath, args: [] };
   const entry = main.startsWith("file:") ? fileURLToPath(main) : main;
-  return { command: execPath, args: ["run", join(dirname(entry), "index.ts")] };
+  const sep = entry.includes("\\") ? "\\" : "/";
+  const dir = entry.slice(0, entry.lastIndexOf(sep));
+  return { command: execPath, args: ["run", `${dir}${sep}index.ts`] };
 }
 
 export function serverEntry(dbPath: string, self = selfCommand()): ServerEntry {

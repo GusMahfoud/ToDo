@@ -75,7 +75,11 @@ pub fn exec(conn: &Connection, sql: &str, params: &[Value]) -> rusqlite::Result<
     }
 }
 
-pub fn select(conn: &Connection, sql: &str, params: &[Value]) -> rusqlite::Result<Vec<Map<String, Value>>> {
+pub fn select(
+    conn: &Connection,
+    sql: &str,
+    params: &[Value],
+) -> rusqlite::Result<Vec<Map<String, Value>>> {
     let mut stmt = conn.prepare(sql)?;
     let names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
     let values: Vec<SqlValue> = params.iter().map(to_sql).collect();
@@ -91,8 +95,10 @@ pub fn select(conn: &Connection, sql: &str, params: &[Value]) -> rusqlite::Resul
 
 /// Reads a value from the shared `settings` table (None if the table or key is missing).
 pub fn get_setting(conn: &Connection, key: &str) -> Option<String> {
-    conn.query_row("SELECT value FROM settings WHERE key = ?1", [key], |r| r.get(0))
-        .ok()
+    conn.query_row("SELECT value FROM settings WHERE key = ?1", [key], |r| {
+        r.get(0)
+    })
+    .ok()
 }
 
 pub fn set_setting(conn: &Connection, key: &str, value: &str) -> rusqlite::Result<()> {

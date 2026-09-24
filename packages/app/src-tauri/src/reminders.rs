@@ -2,11 +2,7 @@
 //! keeps firing while the window is hidden (hidden webviews throttle JS timers).
 
 use crate::db;
-use std::{
-    path::PathBuf,
-    thread,
-    time::Duration,
-};
+use std::{path::PathBuf, thread, time::Duration};
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_notification::NotificationExt;
 
@@ -78,7 +74,15 @@ fn tick(app: &AppHandle, conn: &rusqlite::Connection) -> rusqlite::Result<usize>
         n => notify(
             app,
             "Reminders",
-            &format!("{n} todos are due:\n{}", titles.iter().take(5).cloned().collect::<Vec<_>>().join("\n")),
+            &format!(
+                "{n} todos are due:\n{}",
+                titles
+                    .iter()
+                    .take(5)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ),
         ),
     }
     Ok(titles.len())
@@ -92,7 +96,11 @@ pub fn notify(app: &AppHandle, title: &str, body: &str) {
 
 /// Pauses reminders for `minutes` (0 resumes). Returns the new `paused_until` ms.
 pub fn pause(conn: &rusqlite::Connection, minutes: i64) -> rusqlite::Result<i64> {
-    let until = if minutes <= 0 { 0 } else { db::now_ms() + minutes * 60_000 };
+    let until = if minutes <= 0 {
+        0
+    } else {
+        db::now_ms() + minutes * 60_000
+    };
     db::set_setting(conn, PAUSED_UNTIL_KEY, &until.to_string())?;
     Ok(until)
 }

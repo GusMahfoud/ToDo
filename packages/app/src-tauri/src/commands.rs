@@ -11,7 +11,8 @@ use tauri::{AppHandle, State};
 type CmdResult<T> = Result<T, String>;
 
 fn lock(db: &AppDb) -> CmdResult<std::sync::MutexGuard<'_, rusqlite::Connection>> {
-    db.0.lock().map_err(|e| format!("database lock poisoned: {e}"))
+    db.0.lock()
+        .map_err(|e| format!("database lock poisoned: {e}"))
 }
 
 #[tauri::command]
@@ -21,7 +22,11 @@ pub fn db_exec(state: State<'_, AppDb>, sql: String, params: Vec<Value>) -> CmdR
 }
 
 #[tauri::command]
-pub fn db_select(state: State<'_, AppDb>, sql: String, params: Vec<Value>) -> CmdResult<Vec<Map<String, Value>>> {
+pub fn db_select(
+    state: State<'_, AppDb>,
+    sql: String,
+    params: Vec<Value>,
+) -> CmdResult<Vec<Map<String, Value>>> {
     let conn = lock(&state)?;
     db::select(&conn, &sql, &params).map_err(|e| e.to_string())
 }
@@ -77,6 +82,9 @@ pub fn app_info(app: AppHandle) -> CmdResult<Map<String, Value>> {
     m.insert("version".into(), Value::String(info.version.to_string()));
     m.insert("os".into(), Value::String(std::env::consts::OS.into()));
     m.insert("arch".into(), Value::String(std::env::consts::ARCH.into()));
-    m.insert("appimage".into(), Value::Bool(std::env::var_os("APPIMAGE").is_some()));
+    m.insert(
+        "appimage".into(),
+        Value::Bool(std::env::var_os("APPIMAGE").is_some()),
+    );
     Ok(m)
 }

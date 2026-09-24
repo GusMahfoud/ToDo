@@ -28,15 +28,12 @@ fn in_source_tree() -> Option<PathBuf> {
     }
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("binaries");
     let entries = std::fs::read_dir(dir).ok()?;
-    entries
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .find(|p| {
-            p.file_name()
-                .and_then(|n| n.to_str())
-                .map(|n| n.starts_with(&format!("{NAME}-")))
-                .unwrap_or(false)
-        })
+    entries.filter_map(Result::ok).map(|e| e.path()).find(|p| {
+        p.file_name()
+            .and_then(|n| n.to_str())
+            .map(|n| n.starts_with(&format!("{NAME}-")))
+            .unwrap_or(false)
+    })
 }
 
 /// AppImages mount at a new temp path on each launch, so a config that points
@@ -45,9 +42,7 @@ fn in_source_tree() -> Option<PathBuf> {
 #[cfg(target_os = "linux")]
 fn appimage_stable_copy(app: &AppHandle, source: &Path) -> Option<PathBuf> {
     use tauri::Manager;
-    if std::env::var_os("APPIMAGE").is_none() {
-        return None;
-    }
+    std::env::var_os("APPIMAGE")?;
     let home = app.path().home_dir().ok()?;
     let bin_dir = home.join(".local").join("bin");
     let target = bin_dir.join(NAME);
@@ -73,8 +68,11 @@ fn appimage_stable_copy(_app: &AppHandle, _source: &Path) -> Option<PathBuf> {
 }
 
 pub fn resolve(app: &AppHandle) -> Result<PathBuf, String> {
-    let found = beside_executable()
-        .or_else(in_source_tree)
-        .ok_or_else(|| format!("{} not found next to the app. Run `bun run build:sidecar`.", exe_name()))?;
+    let found = beside_executable().or_else(in_source_tree).ok_or_else(|| {
+        format!(
+            "{} not found next to the app. Run `bun run build:sidecar`.",
+            exe_name()
+        )
+    })?;
     Ok(appimage_stable_copy(app, &found).unwrap_or(found))
 }

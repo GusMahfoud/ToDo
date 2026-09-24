@@ -74,7 +74,11 @@ fn set_pause(app: &AppHandle, minutes: i64) {
     match result {
         Ok(until) => {
             let _ = app.emit("settings-changed", ());
-            let body = if until == 0 { "Reminders resumed." } else { "Reminders paused for 1 hour." };
+            let body = if until == 0 {
+                "Reminders resumed."
+            } else {
+                "Reminders paused for 1 hour."
+            };
             reminders::notify(app, "TodoMCP", body);
         }
         Err(e) => eprintln!("[tray] pause failed: {e}"),

@@ -41,7 +41,11 @@ pub struct WriteResult {
 }
 
 pub fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
-    Ok(app.path().app_data_dir().map_err(|e| e.to_string())?.join(db::DB_FILE))
+    Ok(app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join(db::DB_FILE))
 }
 
 /// The entry every client gets. `TODO_DB_PATH` is always explicit so the app
@@ -49,7 +53,10 @@ pub fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
 pub fn server_entry(app: &AppHandle) -> Result<ServerEntry, String> {
     let bin = sidecar::resolve(app)?;
     let mut env = Map::new();
-    env.insert("TODO_DB_PATH".into(), Value::String(db_path(app)?.to_string_lossy().into_owned()));
+    env.insert(
+        "TODO_DB_PATH".into(),
+        Value::String(db_path(app)?.to_string_lossy().into_owned()),
+    );
     Ok(ServerEntry {
         command: bin.to_string_lossy().into_owned(),
         args: vec![],
@@ -69,7 +76,12 @@ fn candidates(app: &AppHandle, client: Client) -> Result<Vec<PathBuf>, String> {
                 if let Ok(local) = app.path().local_data_dir() {
                     let pkg = local.join("Packages").join("Claude_pzs8sxrjxfjjc");
                     if pkg.exists() {
-                        v.push(pkg.join("LocalCache").join("Roaming").join("Claude").join(file));
+                        v.push(
+                            pkg.join("LocalCache")
+                                .join("Roaming")
+                                .join("Claude")
+                                .join(file),
+                        );
                     }
                 }
                 if let Ok(roaming) = app.path().data_dir() {
@@ -77,7 +89,11 @@ fn candidates(app: &AppHandle, client: Client) -> Result<Vec<PathBuf>, String> {
                 }
                 v
             } else if cfg!(target_os = "macos") {
-                vec![home.join("Library").join("Application Support").join("Claude").join(file)]
+                vec![home
+                    .join("Library")
+                    .join("Application Support")
+                    .join("Claude")
+                    .join(file)]
             } else {
                 let config = app.path().config_dir().map_err(|e| e.to_string())?;
                 vec![config.join("Claude").join(file)]
@@ -99,7 +115,8 @@ fn read_json(path: &PathBuf) -> Result<Map<String, Value>, String> {
     if !path.exists() {
         return Ok(Map::new());
     }
-    let text = std::fs::read_to_string(path).map_err(|e| format!("Cannot read {}: {e}", path.display()))?;
+    let text = std::fs::read_to_string(path)
+        .map_err(|e| format!("Cannot read {}: {e}", path.display()))?;
     let text = text.trim_start_matches('\u{feff}');
     if text.trim().is_empty() {
         return Ok(Map::new());
@@ -107,7 +124,10 @@ fn read_json(path: &PathBuf) -> Result<Map<String, Value>, String> {
     match serde_json::from_str::<Value>(text) {
         Ok(Value::Object(map)) => Ok(map),
         Ok(_) => Err(format!("{} is not a JSON object", path.display())),
-        Err(e) => Err(format!("{} is not valid JSON ({e}). Fix or remove it first.", path.display())),
+        Err(e) => Err(format!(
+            "{} is not valid JSON ({e}). Fix or remove it first.",
+            path.display()
+        )),
     }
 }
 
@@ -146,7 +166,10 @@ pub fn preview(app: &AppHandle, client: Client) -> Result<Preview, String> {
         before: pretty(&existing),
         after: pretty(&after),
         already_configured: already,
-        candidates: all.iter().map(|p| p.to_string_lossy().into_owned()).collect(),
+        candidates: all
+            .iter()
+            .map(|p| p.to_string_lossy().into_owned())
+            .collect(),
         path: path.to_string_lossy().into_owned(),
     })
 }
@@ -160,7 +183,10 @@ pub fn write(app: &AppHandle, client: Client) -> Result<WriteResult, String> {
 
     let backup = if path.exists() {
         let stamp = db::now_ms() / 1000;
-        let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
         let backup = path.with_file_name(format!("{name}.{stamp}.bak"));
         std::fs::copy(&path, &backup).map_err(|e| format!("Backup failed: {e}"))?;
         Some(backup.to_string_lossy().into_owned())
@@ -168,9 +194,11 @@ pub fn write(app: &AppHandle, client: Client) -> Result<WriteResult, String> {
         None
     };
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| format!("Cannot create {}: {e}", parent.display()))?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Cannot create {}: {e}", parent.display()))?;
     }
-    std::fs::write(&path, format!("{}\n", pretty(&after))).map_err(|e| format!("Write failed: {e}"))?;
+    std::fs::write(&path, format!("{}\n", pretty(&after)))
+        .map_err(|e| format!("Write failed: {e}"))?;
     Ok(WriteResult {
         path: path.to_string_lossy().into_owned(),
         backup_path: backup,

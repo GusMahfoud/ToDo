@@ -43,6 +43,7 @@ Commit messages: `area: what changed` (≤ 60 chars), optional body = why + link
 | Install | `bun install` |
 | Test / typecheck / lint | `bun test` · `bun run typecheck` · `bun run lint` |
 | Format | `bun run format` |
-| Run MCP from source | `bun run mcp` · `bun run mcp:inspect` |
+| Run MCP from source | `bun run mcp` · `bun run mcp:inspect` · `bun run mcp:connect cursor --dry-run` |
+| Installers without local Rust | GitHub → Actions → *Build installers (manual)* |
 | Sidecar binary | `bun run build:sidecar` |
 | App | `bun run app:dev` · `bun run app:build` |

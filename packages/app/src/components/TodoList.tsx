@@ -15,7 +15,7 @@ export function TodoList({
   onSelect: (id: number) => void;
   onToggle: (todo: Todo) => void;
   emptyTitle: string;
-  emptyHint?: string;
+  emptyHint?: string | undefined;
 }) {
   if (todos.length === 0) return <EmptyState title={emptyTitle} hint={emptyHint} />;
   return (

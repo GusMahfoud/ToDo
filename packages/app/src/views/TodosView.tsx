@@ -1,12 +1,14 @@
 import type { Store, Todo, TodoFilter, TodoPatch } from "@todomcp/core";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { QuickAdd } from "../components/QuickAdd";
 import type { View } from "../components/Sidebar";
 import { TodoDetail } from "../components/TodoDetail";
 import { TodoList } from "../components/TodoList";
 import { Notice } from "../components/ui";
 import { useLiveQuery } from "../hooks/useLiveQuery";
+import { useShortcuts } from "../hooks/useShortcuts";
 import { endOfToday } from "../lib/format";
+import type { QuickAddParse } from "../lib/quick-add";
 
 type ListView = Exclude<View, "settings">;
 
@@ -49,14 +51,31 @@ export function TodosView({
   reminderLeadMinutes: number;
 }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const quickAddRef = useRef<HTMLInputElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
 
-  const query = useCallback(() => store.todos.list(filterFor(view)), [store, view]);
+  const query = useCallback(() => {
+    const filter = filterFor(view);
+    return store.todos.list(search.trim() ? { ...filter, search: search.trim() } : filter);
+  }, [store, view, search]);
   const { data: todos, refresh } = useLiveQuery(query, [view, seq]);
 
   const selected = useMemo(
     () => todos?.find((t) => t.id === selectedId) ?? null,
     [todos, selectedId],
+  );
+
+  useShortcuts(
+    useMemo(
+      () => ({
+        newTodo: () => quickAddRef.current?.focus(),
+        search: () => searchRef.current?.focus(),
+        escape: () => (selectedId !== null ? setSelectedId(null) : setSearch("")),
+      }),
+      [selectedId],
+    ),
   );
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -69,7 +88,10 @@ export function TodosView({
     }
   };
 
-  const add = (title: string) => run(() => store.todos.add({ title, source: "ui" }));
+  const add = (p: QuickAddParse) =>
+    run(() =>
+      store.todos.add({ title: p.title, tags: p.tags, priority: p.priority, source: "ui" }),
+    );
   const toggle = (todo: Todo) =>
     run(() => store.todos.update(todo.id, { status: todo.status === "done" ? "open" : "done" }));
   const save = (patch: TodoPatch) => selected && run(() => store.todos.update(selected.id, patch));
@@ -88,8 +110,19 @@ export function TodosView({
         <header className="view-header">
           <h1>{TITLES[view]}</h1>
           {todos && <span className="view-count">{todos.length}</span>}
+          <span className="spacer" />
+          <input
+            ref={searchRef}
+            className="search"
+            type="search"
+            placeholder="Search…  Ctrl+F"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search todos"
+            data-shortcut-target="search"
+          />
         </header>
-        {view !== "done" && <QuickAdd onAdd={add} autoFocus />}
+        {view !== "done" && <QuickAdd onAdd={add} autoFocus inputRef={quickAddRef} />}
         {error && <Notice tone="error">{error}</Notice>}
         {todos && (
           <TodoList
@@ -97,8 +130,8 @@ export function TodosView({
             selectedId={selectedId}
             onSelect={(id) => setSelectedId(id === selectedId ? null : id)}
             onToggle={toggle}
-            emptyTitle={emptyTitle}
-            emptyHint={emptyHint}
+            emptyTitle={search ? "No matches" : emptyTitle}
+            emptyHint={search ? undefined : emptyHint}
           />
         )}
       </section>

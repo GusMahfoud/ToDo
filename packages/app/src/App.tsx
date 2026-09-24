@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Sidebar, type View } from "./components/Sidebar";
 import { Notice } from "./components/ui";
 import { useLiveQuery, useSeq, useStore } from "./hooks/useLiveQuery";
 import { useSettings } from "./hooks/useSettings";
+import { useShortcuts } from "./hooks/useShortcuts";
 import { SettingsView } from "./views/settings/SettingsView";
 import { filterFor, TodosView } from "./views/TodosView";
 
@@ -11,6 +12,7 @@ export default function App() {
   const [view, setView] = useState<View>("today");
   const seq = useSeq(store, "todos");
   const { settings, update } = useSettings(store);
+  useShortcuts(useMemo(() => ({ settings: () => setView("settings") }), []));
 
   // Sidebar counts: cheap, and they refresh with the same change counter.
   const countQuery = useCallback(async () => {

@@ -10,8 +10,8 @@ use tauri::{AppHandle, State};
 
 type CmdResult<T> = Result<T, String>;
 
-fn lock(state: &State<'_, AppDb>) -> CmdResult<std::sync::MutexGuard<'_, rusqlite::Connection>> {
-    state.0.lock().map_err(|e| format!("database lock poisoned: {e}"))
+fn lock(db: &AppDb) -> CmdResult<std::sync::MutexGuard<'_, rusqlite::Connection>> {
+    db.0.lock().map_err(|e| format!("database lock poisoned: {e}"))
 }
 
 #[tauri::command]

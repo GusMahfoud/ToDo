@@ -61,7 +61,7 @@ jobs:
       - name: tauri build
         working-directory: packages/app
         run: bun tauri build ${{ matrix.args }} ${{ inputs.debug && '--debug' || '' }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: todomcp-${{ matrix.name }}-${{ github.sha }}
           if-no-files-found: error

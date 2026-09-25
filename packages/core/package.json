@@ -2,6 +2,8 @@
   "name": "@todomcp/core",
   "version": "0.1.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Gus Mahfoud",
   "type": "module",
   "description": "Shared schema, migrations, queries and tool defaults for TodoMCP",
   "exports": {

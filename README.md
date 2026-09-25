@@ -90,4 +90,6 @@ Security policy: [SECURITY.md](SECURITY.md). Code style for humans and agents: [
 
 ## License
 
-MIT
+TodoMCP is free to use, at home or at work, and the source is open to read and modify. What you can't
+do is sell it, or ship it (or something built on it) as your own product. Details: [LICENSE](LICENSE)
+(PolyForm Shield 1.0.0) and the [Terms of Use](TERMS.txt) the installer asks you to accept.

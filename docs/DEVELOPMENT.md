@@ -24,6 +24,18 @@ is the only integration point; either side works without the other running.
 | `.github/workflows` | `ci.yml` (tests, typecheck, lint, Rust check) · `release.yml` (tag → draft release) · `build-installers.yml` (manual → artifacts) |
 | `docs/IMPLEMENTATION.md` | The original plan; § numbers are referenced from code comments |
 
+## Licensing
+
+| File | Governs | Shown where |
+|---|---|---|
+| `LICENSE` | Source code: PolyForm Shield 1.0.0 (use, modify, share OK; competing or selling not OK) | Repo; AUR `/usr/share/licenses` |
+| `TERMS.txt` | Installed app (EULA) | Windows installer "I Agree" page via `bundle.licenseFile`; AUR |
+| `CONTRIBUTING.md` | Copyright assignment for outside contributions | PRs |
+
+Keep the `Required Notice:` and `Licensor Line of Business:` lines at the top of `LICENSE`; the Shield
+license's Notices and Discontinued Products clauses depend on them. Release v0.0.1 and earlier commits
+were MIT and stay MIT for anyone who already has them.
+
 ## Setup
 
 Prerequisites: [Bun](https://bun.sh) ≥ 1.2, [Rust](https://rustup.rs) stable, and the

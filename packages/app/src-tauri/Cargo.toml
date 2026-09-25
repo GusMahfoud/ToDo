@@ -2,8 +2,8 @@
 name = "todomcp"
 version = "0.1.0"
 description = "Desktop todo app that doubles as a local MCP server"
-authors = ["TodoMCP contributors"]
-license = "MIT"
+authors = ["Gus Mahfoud"]
+license-file = "../../../LICENSE"
 edition = "2021"
 rust-version = "1.77.2"
 

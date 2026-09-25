@@ -2,6 +2,8 @@
   "name": "@todomcp/app",
   "version": "0.1.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Gus Mahfoud",
   "type": "module",
   "scripts": {
     "dev": "vite",

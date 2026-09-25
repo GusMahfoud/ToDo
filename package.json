@@ -1,6 +1,8 @@
 {
   "name": "todomcp",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Gus Mahfoud",
   "version": "0.1.0",
   "description": "Desktop todo app that doubles as a local MCP server",
   "workspaces": [

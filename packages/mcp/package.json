@@ -2,6 +2,8 @@
   "name": "@todomcp/mcp",
   "version": "0.1.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Gus Mahfoud",
   "type": "module",
   "description": "todo-mcp: local stdio MCP server over the TodoMCP SQLite database",
   "bin": {

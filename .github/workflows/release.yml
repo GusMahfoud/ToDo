@@ -55,17 +55,37 @@ jobs:
       - name: Build todo-mcp sidecar (${{ matrix.triple }})
         run: bun run scripts/build-sidecar.ts ${{ matrix.triple }}
 
+      # Only export Apple signing vars when the secrets exist. An empty
+      # APPLE_CERTIFICATE makes the bundler attempt `security import` and fail.
+      - name: macOS signing (optional)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          CERT: ${{ secrets.APPLE_CERTIFICATE }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID_S: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD_S: ${{ secrets.APPLE_PASSWORD }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$CERT" ]; then
+            echo "No APPLE_CERTIFICATE secret — building unsigned macOS bundles."
+            exit 0
+          fi
+          {
+            echo "APPLE_CERTIFICATE<<EOF"; echo "$CERT"; echo "EOF"
+            echo "APPLE_CERTIFICATE_PASSWORD=$CERT_PASSWORD"
+            echo "APPLE_SIGNING_IDENTITY=$IDENTITY"
+            echo "APPLE_ID=$APPLE_ID_S"
+            echo "APPLE_PASSWORD=$APPLE_PASSWORD_S"
+            echo "APPLE_TEAM_ID=$TEAM_ID"
+          } >> "$GITHUB_ENV"
+          echo "Signing + notarization enabled."
+
       - name: Build installers and upload to draft release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Optional signing/notarization — unset means unsigned artifacts (fine for testers).
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: packages/app
           tagName: ${{ github.ref_name }}

@@ -1,144 +1,92 @@
 # TodoMCP
 
-A cross-platform desktop todo app (Windows, macOS, Linux incl. Omarchy/Hyprland) that doubles as a local
-**MCP server**, so AI clients like Cursor, Claude Code and Claude Desktop can read and write your todos.
-You control which tools the AI sees and what each tool's description ("prompt") says, from the app.
+**A todo list your AI can use.**
 
-```
-AI client ──stdio──► todo-mcp (Bun-compiled binary) ──► todos.db (SQLite, WAL) ◄── TodoMCP app (Tauri)
-```
+TodoMCP is a small desktop app for Windows, macOS and Linux. It keeps your todos in one place, reminds you
+when things are due — and it plugs into AI tools like **Cursor, Claude Code and Claude Desktop**, so you can
+just say *"remind me to call the dentist tomorrow at 10"* and it lands on your list.
 
-Two programs, one SQLite file. The MCP server works even when the app isn't running; the app handles the
-window, tray, reminders and autostart.
+Everything stays on your computer. No account, no cloud, no sync service.
 
-## Repository layout
+## Get started in 3 steps
 
-| Path | What |
+**1. Install**
+
+Download the installer for your system from the [latest release](../../releases/latest):
+
+| System | File |
 |---|---|
-| `packages/core` | Schema, migrations, `Store` queries, tool defaults, time helpers, DB adapters (`bun:sqlite`, Tauri) |
-| `packages/mcp` | `todo-mcp` — the stdio MCP server (+ small CLI: `add`, `list`, `now`) |
-| `packages/app` | Tauri 2 desktop app: React UI in `src/`, Rust shell in `src-tauri/` |
-| `scripts/build-sidecar.ts` | Compiles `todo-mcp` per target triple into `packages/app/src-tauri/binaries/` |
-| `packaging/aur/PKGBUILD` | Arch/Omarchy package |
-| `.github/workflows` | `ci.yml` (tests, typecheck, lint, Rust check) · `release.yml` (tag → draft release) · `build-installers.yml` (manual → artifacts) |
+| Windows | `TodoMCP_x.y.z_x64-setup.exe` |
+| macOS (Apple Silicon / Intel) | `TodoMCP_x.y.z_aarch64.dmg` / `TodoMCP_x.y.z_x64.dmg` |
+| Linux | `.AppImage`, `.deb` or `.rpm` |
 
-## Development
+Builds aren't code-signed yet, so Windows SmartScreen or macOS Gatekeeper may warn you the first time
+(Windows: *More info → Run anyway*; macOS: right-click → *Open*).
 
-Prerequisites: [Bun](https://bun.sh) ≥ 1.2, [Rust](https://rustup.rs) stable, and the
-[Tauri 2 system dependencies](https://v2.tauri.app/start/prerequisites/) for your OS.
+**2. Connect your AI**
 
-```sh
-bun install
-bun test                     # core + mcp tests (real SQLite, in-memory MCP client)
-bun run typecheck            # every package
-bun run lint                 # biome
-bun run build:sidecar        # compile todo-mcp for this machine → src-tauri/binaries/
-bun run app:dev              # Tauri dev window (Vite HMR)
-bun run app:build            # sidecar + installers for this OS
-```
+Open TodoMCP → **Settings → Connect**, pick your AI app, click **Connect**. You'll see exactly what will be
+written before anything changes (a backup is kept). Restart the AI app once.
 
-Try the MCP server without the app:
+| AI app | How |
+|---|---|
+| Cursor | One click |
+| Claude Desktop | One click |
+| Claude Code | Copy one command into your terminal |
+| Anything else that speaks MCP | Copy the JSON snippet |
 
-```sh
-bun run mcp:inspect                          # MCP Inspector against the TS source
-bun run mcp:connect cursor --dry-run         # show what would be written to ~/.cursor/mcp.json
-bun run mcp:connect cursor                   # write it (backup kept) — Cursor can use todos today
-bun run mcp add "Call dentist" --due 2026-09-25T10:00:00-04:00
-```
+**3. Talk to it**
 
-`todo-mcp connect <cursor|claude-desktop|claude-code|json>` does the same from the compiled binary.
+> "Add *buy milk* to my list"
+> "What's on my list this week?"
+> "Remind me to send the invoice Friday at 9"
+> "Mark the dentist one done"
 
-> **Windows + Smart App Control:** Smart App Control blocks unsigned freshly-built executables, which
-> includes Cargo build scripts, so `cargo`/`tauri build` fail with `os error 4551`. Use
-> **Actions → Build installers (manual)** to get installers as artifacts, or build on a machine without
-> it. The Bun sidecar and all TypeScript tooling are unaffected.
+New items show up in the app within a second, with a small badge showing which AI added them.
 
-## Connecting an AI client
+## What it does
 
-Open **Settings → Connect** in the app. It shows the absolute path of the bundled `todo-mcp` binary and
-the database, and offers:
+| | |
+|---|---|
+| **Today · Upcoming · All · Done** | Simple views. Quick-add bar at the top: type, press Enter. `#tag` and `!1`–`!3` set tags and priority inline. |
+| **Reminders** | Set a time, get a normal system notification — even when the window is closed to the tray. Pause them for an hour from the tray icon. |
+| **Runs in the tray** | Closing the window hides it. Optional *launch at login* so reminders keep working after a reboot. |
+| **You control the AI** | **Settings → AI tools**: switch each ability on or off and edit the plain-English description the AI reads. Deleting is *off* by default. |
+| **Works offline, works alone** | The AI side works even if the app isn't open. The app works even if you never connect an AI. |
+| **Keyboard** | `Ctrl+N` new todo · `Ctrl+F` search · `Ctrl+,` settings · `Esc` close |
 
-- **Cursor** / **Claude Desktop** — a *Connect* button that merges a `todo` entry into the client's JSON
-  config (shows a before/after diff, keeps a timestamped `.bak`, never touches other servers).
-- **Claude Code** — a `claude mcp add …` command to copy.
-- **Anything else** — generic JSON.
+## Where is my data?
 
-The entry always sets `TODO_DB_PATH` explicitly so the app and server can never disagree:
+One file on your computer:
 
-```json
-{
-  "mcpServers": {
-    "todo": {
-      "command": "C:\\Program Files\\TodoMCP\\todo-mcp.exe",
-      "args": [],
-      "env": { "TODO_DB_PATH": "C:\\Users\\me\\AppData\\Roaming\\com.example.todomcp\\todos.db" }
-    }
-  }
-}
-```
-
-Restart the client after connecting. Tool on/off and description changes in **Settings → AI tools** apply
-live (`notifications/tools/list_changed`); if a client doesn't refresh, restart its MCP server.
-
-### Tools
-
-| Tool | Default | Notes |
-|---|---|---|
-| `todo_add` | on | Times are ISO 8601 **with offset** |
-| `todo_list` | on | read-only; returns current time + timezone |
-| `todo_update` | on | idempotent; `null` clears dates |
-| `todo_complete` | on | idempotent |
-| `todo_delete` | **off** | destructive; enable in Settings |
-| `todo_current_time` | on | so the model can resolve "tomorrow at 9" |
-
-## Data
-
-One SQLite file (WAL mode, 5 s busy timeout). Timestamps are unix ms UTC.
-
-| OS | Path |
+| System | Location |
 |---|---|
 | Windows | `%APPDATA%\com.example.todomcp\todos.db` |
 | macOS | `~/Library/Application Support/com.example.todomcp/todos.db` |
-| Linux | `$XDG_DATA_HOME/com.example.todomcp/todos.db` (default `~/.local/share/…`) |
+| Linux | `~/.local/share/com.example.todomcp/todos.db` |
 
-`TODO_DB_PATH` overrides the location for `todo-mcp`.
+Copy that file to back up everything. Delete it to start fresh.
 
-## Linux / Omarchy notes
+## Questions
 
-- **Tray**: StatusNotifierItem via libayatana-appindicator → shows in Waybar's tray. Menu-only interaction
-  (left click opens the menu; double click opens the window).
-- **Float rule** for Hyprland (`~/.config/hypr/hyprland.conf`):
-  `windowrule = float, class:^(todomcp)$`
-- **Autostart**: the toggle writes an XDG autostart entry. If your setup ignores those, add
-  `exec-once = todomcp --hidden` to your Hyprland config instead.
-- **Blank window on NVIDIA + Wayland** (WebKitGTK): run with `WEBKIT_DISABLE_DMABUF_RENDERER=1`.
-- **Global shortcut**: Wayland apps can't grab hotkeys; bind the CLI instead, e.g.
-  `bind = SUPER, T, exec, todo-mcp add "$(wofi --dmenu -p 'Todo')"`.
-- **AppImage**: the sidecar is copied to `~/.local/bin/todo-mcp` (refreshed on version change) because an
-  AppImage mounts at a new path on every launch. `.deb`/`.rpm`/AUR installs have stable paths.
+**Do I need an account or API key?** No. Your AI app talks to TodoMCP directly on your machine.
 
-## Troubleshooting
+**Which AI apps work?** Anything that supports MCP servers over stdio: Cursor, Claude Code, Claude Desktop,
+and many others. If yours isn't listed on the Connect screen, use the generic JSON option.
 
-- *Client shows no tools*: run the binary from a terminal — `todo-mcp --version` — then check the client's
-  MCP log; stdout must only carry JSON-RPC, everything else goes to stderr (`TODO_MCP_DEBUG=1` for more).
-- *Claude Desktop on Windows ignores the config*: MSIX installs read
-  `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json`; the
-  Connect screen detects and prefers that path when the package folder exists.
-- *Reminder didn't fire*: reminders are checked every 20 s by the app process; make sure the app is running
-  (tray icon) and not paused (Settings → Notifications). On Windows, test from the installed build.
-- *Database locked*: both processes retry with a 5 s busy timeout; if a client reports it, another writer was
-  holding a long transaction — try again.
+**I turned a tool off but the AI still sees it.** Some AI apps don't refresh their tool list live. Start a new
+chat or restart the MCP server in that app.
 
-## Releasing
+**A reminder didn't fire.** Make sure TodoMCP is running (look for the tray icon) and reminders aren't paused
+(**Settings → Notifications**). On Windows, notifications work from the installed app, not a dev build.
 
-Bump `version` in `packages/app/src-tauri/tauri.conf.json`, `packages/app/src-tauri/Cargo.toml` and
-`packages/mcp/src/server.ts`, tag `vX.Y.Z`, push. `release.yml` builds NSIS/MSI, DMG, AppImage/deb/rpm on
-native runners and attaches them to a draft GitHub Release. Signing/notarization secrets are optional.
+**Linux tiling / Hyprland / Omarchy?** Works. Float rule: `windowrule = float, class:^(todomcp)$`. More in
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#linux--omarchy-notes).
 
-## Phase 2 (designed, not scheduled)
+## For developers
 
-The schema already carries `assignee` and `source` so agent-run todos and webhook intake can land later
-without migrations to existing columns. See `IMPLEMENTATION.md` §11 for the design.
+Architecture, repo layout, build commands, CI and release process: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Security policy: [SECURITY.md](SECURITY.md). Code style for humans and agents: [CLAUDE.md](CLAUDE.md).
 
 ## License
 

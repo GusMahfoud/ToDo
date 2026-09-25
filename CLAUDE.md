@@ -25,6 +25,7 @@ Commit messages: `area: what changed` (≤ 60 chars), optional body = why + link
 | `packages/app/src-tauri` | Tray, reminders, DB bridge, client-config merge, sidecar lookup |
 | `scripts/` | `build-sidecar.ts` |
 | `docs/IMPLEMENTATION.md` | The plan; §numbers referenced in code comments |
+| `docs/DEVELOPMENT.md` | Technical reference. `README.md` is for end users — keep it non-technical |
 
 ## Rules
 

@@ -1,0 +1,110 @@
+TodoMCP Terms of Use (End-User License Agreement)
+
+Version 1.0 - Effective 25 September 2026
+Licensor: Gus Mahfoud ("we", "us")
+Project: https://github.com/GusMahfoud/ToDo
+
+By installing or using TodoMCP (the "App") you agree to these terms. If you
+do not agree, do not install or use the App.
+
+
+1. WHAT YOU MAY DO
+
+  - Install and use the App on any number of devices you own or control,
+    for personal or work purposes, free of charge.
+  - Read, copy and modify the App's source code under the PolyForm Shield
+    License 1.0.0 (the "Source License"), which is included with the source
+    code and at https://polyformproject.org/licenses/shield/1.0.0.
+  - Share unmodified copies of the App or its source with others, as long as
+    you keep every copyright notice, the Source License and these terms with
+    it.
+
+
+2. WHAT YOU MAY NOT DO
+
+  - Sell, rent, sublicense or charge money for the App, for access to it, or
+    for any product or service that is substantially based on it.
+  - Distribute the App, or a product substantially based on it, under a
+    different name or brand, or present it as your own work.
+  - Offer any product or service that competes with TodoMCP, as described in
+    the Source License's "Noncompete" and "Competition" sections. This applies
+    even if your product is free.
+  - Remove, hide or alter any copyright notice, "Required Notice" line,
+    license text or attribution.
+  - Use the "TodoMCP" name or logo to identify a modified version, or in a
+    way that suggests we made or endorse something we did not.
+
+  If these terms and the Source License ever conflict, the Source License
+  governs the source code and these terms govern the installed App.
+
+
+3. OWNERSHIP
+
+  The App and its source code are copyrighted by Gus Mahfoud. We keep every
+  right not expressly granted to you here or in the Source License. The
+  "TodoMCP" name and logo are our trademarks, whether or not registered.
+
+
+4. YOUR DATA
+
+  The App stores your todos in a single SQLite file on your computer. It does
+  not create accounts, send telemetry, or upload your data anywhere. You are
+  responsible for backing that file up. Its location is listed in the README.
+
+
+5. AI INTEGRATIONS
+
+  The App can register itself with third-party AI applications (for example
+  Cursor, Claude Desktop or Claude Code) by editing their configuration files.
+  It shows you the exact change first and keeps a backup. Those applications
+  are governed by their own terms, not these. Anything an AI adds to or
+  removes from your list is done on your instructions to that AI, and we are
+  not responsible for it.
+
+
+6. THIRD-PARTY COMPONENTS
+
+  The App includes open-source components (such as Tauri, React, Bun and
+  SQLite) that are licensed under their own terms. Those terms apply to those
+  components. Their notices are provided with the source code.
+
+
+7. NO WARRANTY
+
+  THE APP IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+  PURPOSE AND NON-INFRINGEMENT. WE DO NOT PROMISE THAT REMINDERS WILL FIRE,
+  THAT DATA WILL NOT BE LOST, OR THAT THE APP WILL BE ERROR-FREE.
+
+
+8. LIMITATION OF LIABILITY
+
+  TO THE FULLEST EXTENT PERMITTED BY LAW, WE WILL NOT BE LIABLE FOR ANY
+  INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, OR FOR
+  ANY LOSS OF DATA, PROFITS OR BUSINESS, ARISING FROM THESE TERMS OR YOUR USE
+  OF THE APP. OUR TOTAL LIABILITY TO YOU WILL NOT EXCEED THE AMOUNT YOU PAID
+  US FOR THE APP, WHICH IS ZERO. Some jurisdictions do not allow these
+  limits, in which case they apply only as far as the law permits.
+
+
+9. TERMINATION
+
+  Your rights under these terms end automatically if you break them. The
+  Source License has its own 32-day cure process for violations of that
+  license. On termination you must stop using and delete all copies of the
+  App. Sections 3, 7, 8 and 10 survive termination.
+
+
+10. GENERAL
+
+  - Governing law and venue: these terms are governed by the laws of the
+    Province of Ontario and the federal laws of Canada applicable there,
+    without regard to conflict-of-law rules. Disputes go to the courts of
+    Ontario, unless the consumer-protection law where you live gives you a
+    right you cannot waive.
+  - We may publish updated terms with a new version of the App. Continuing to
+    use that version means you accept the updated terms.
+  - If any part of these terms is unenforceable, the rest still applies.
+  - These terms and the Source License are the whole agreement between you
+    and us about the App.
+  - Questions: open an issue at https://github.com/GusMahfoud/ToDo/issues.

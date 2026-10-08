@@ -21,7 +21,7 @@
     "app:build": "bun run build:sidecar && bun run --cwd packages/app tauri build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
+    "@biomejs/biome": "^2.5.15",
     "@types/bun": "^1.4.2",
     "typescript": "~5.9.3"
   }
